@@ -54,8 +54,8 @@ class UserController {
                 },
                  responseType: 'json'
             });
-            console.log(request.rawHeaders);
-            res.cookie(request.rawHeaders[9]);
+            console.log(request.headers["set-cookie"]);
+            res.cookie(request.headers["set-cookie"]);
             res.json(request.body);
         }catch (error) {
             res.json(error.response);
