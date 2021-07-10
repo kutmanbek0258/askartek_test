@@ -5,6 +5,7 @@ CREATE TABLE users(
     hash_password VARCHAR (300) NOT NULL
 );
 
+--express-session standard table
 CREATE TABLE "session" (
   "sid" varchar NOT NULL COLLATE "default",
 	"sess" json NOT NULL,
@@ -15,6 +16,13 @@ WITH (OIDS=FALSE);
 ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
 
 CREATE INDEX "IDX_session_expire" ON "session" ("expire");
+
+--custom sessions table
+CREATE TABLE sessions (
+    "sid" varchar NOT NULL COLLATE "default",
+	"sess" json NOT NULL,
+	"expire" timestamp(6) NOT NULL
+);
 
 CREATE TABLE category(
     id SERIAL PRIMARY KEY,

@@ -1,6 +1,6 @@
 const db = require("../db");
 const bcrypt = require("bcryptjs");
-const got = require('got');
+const authService = require("../services/auth.service");
 
 class UserController {
 
@@ -20,7 +20,7 @@ class UserController {
 
     }
 
-    async loginUser(req, res){
+    /*async loginUser(req, res){
         const { email, password } = req.body;
 
         let user = await db.query("SELECT * from users WHERE email = $1", [email]);
@@ -41,25 +41,11 @@ class UserController {
         req.session.username = User.email;
         req.session.user_id = User.id;
         await res.json(User);
-    }
+    }*/
 
-    async loginUserFromService(req, res){
-        const {email, password} = req.body;
-
-        try {
-            const request = await got.post("http://localhost:8081/api/login", {
-                json: {
-                    email: email,
-                    password: password
-                },
-                 responseType: 'json'
-            });
-            console.log(request.headers["set-cookie"]);
-            res.cookie(request.headers["set-cookie"]);
-            res.json(request.body);
-        }catch (error) {
-            res.json(error.response);
-        }
+    async loginUser(req, res){
+        const response = await authService.authenticate(req);
+        res.json(response.body);
     }
 
 }

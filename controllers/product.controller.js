@@ -1,4 +1,5 @@
 const db = require("../db");
+const auth = require("../services/auth.service");
 
 class ProductController {
 
@@ -49,32 +50,42 @@ class ProductController {
     }
 
     async addProductFavorite(req, res){
-        const {user_id, product_id} = req.body;
+        const {authorized, user_id} = await auth.isAuthV2(req);
 
-        let favorite_product = await db.query("INSERT INTO user_product_favorite(user_id, product_id) values ($1, $2) RETURNING *", [user_id, product_id]);
+        if(authorized){
+            const {product_id} = req.body;
 
-        if(favorite_product.rows[0]){
-            await res.json(favorite_product.rows[0])
+            let favorite_product = await db.query("INSERT INTO user_product_favorite(user_id, product_id) values ($1, $2) RETURNING *", [user_id, product_id]);
+
+            if(favorite_product.rows[0]){
+                await res.json(favorite_product.rows[0])
+            }else {
+                await res.send("Favorite creating error")
+            }
         }else {
-            await res.send("Favorite creating error")
+            res.send("not authorized")
         }
     }
 
     async getFavoriteProducts(req, res){
-        const user_id = req.session.user_id;
+        const {authorized, user_id} = await auth.isAuthV2(req);
 
-        let favorites = await db.query("SELECT user_product_favorite.id, product.id AS product_id, product.name\n" +
-            "FROM user_product_favorite\n" +
-            "INNER JOIN product ON user_product_favorite.product_id=product.id\n" +
-            "WHERE user_product_favorite.user_id = $1", [user_id]);
+        if(authorized){
+            let favorites = await db.query("SELECT user_product_favorite.id, product.id AS product_id, product.name\n" +
+                "FROM user_product_favorite\n" +
+                "INNER JOIN product ON user_product_favorite.product_id=product.id\n" +
+                "WHERE user_product_favorite.user_id = $1", [user_id]);
 
-        if(favorites.rows[0]){
-            let products = new Object();
-            products.products = favorites.rows;
-            products.counter = favorites.rows.length;
-            await res.json(products)
+            if(favorites.rows[0]){
+                let products = new Object();
+                products.products = favorites.rows;
+                products.counter = favorites.rows.length;
+                await res.json(products)
+            }else {
+                await res.send("products not found");
+            }
         }else {
-            await res.send("products not found");
+            res.send("not authorized")
         }
     }
 
